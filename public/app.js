@@ -1,4 +1,4 @@
-const API_URL = 'http://localhost:3000/api';
+const API_URL = 'https://budget-tracker-production-6e09.up.railway.app/api';
 let currentUser = null;
 let currentMonth = new Date();
 let allData = {};
