@@ -10,7 +10,7 @@ const app = express();
 // Middleware
 app.use(cors({
     origin: process.env.NODE_ENV === 'production' 
-        ? ['https://your-domain.com', 'https://your-domain.netlify.app'] 
+        ? ['https://peppy-pothos-b4803c.netlify.app', 'https://budget-tracker-production-6e09.up.railway.app'] 
         : '*',
     credentials: true
 }));
