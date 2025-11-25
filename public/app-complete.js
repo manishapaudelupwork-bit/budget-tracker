@@ -41,23 +41,27 @@ async function register() {
     }
     
     try {
+        console.log('Registering with:', { name, email });
         const response = await fetch(`${API_URL}/auth/register`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ name, email, password })
         });
         
+        console.log('Response status:', response.status);
         const data = await response.json();
+        console.log('Response data:', data);
         
         if (response.ok) {
             localStorage.setItem('token', data.token);
             currentUser = data.user;
             showApp();
         } else {
-            document.getElementById('registerMessage').textContent = data.error;
+            document.getElementById('registerMessage').textContent = data.error || 'Registration failed';
         }
     } catch (error) {
-        document.getElementById('registerMessage').textContent = 'Registration failed';
+        console.error('Registration error:', error);
+        document.getElementById('registerMessage').textContent = 'Registration failed: ' + error.message;
     }
 }
 
