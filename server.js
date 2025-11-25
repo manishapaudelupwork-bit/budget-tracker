@@ -98,7 +98,7 @@ const authenticateToken = (req, res, next) => {
 
 // Home route
 app.get('/', (req, res) => {
-    res.sendFile(__dirname + '/public/app.html');
+    res.sendFile(__dirname + '/public/app-complete.html');
 });
 
 // Register
