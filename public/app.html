@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Budget Tracker - Manage Your Money</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+    <!-- Google AdSense -->
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-xxxxxxxxxxxxxxxx"
+     crossorigin="anonymous"></script>
+</head>
+<body>
+    <!-- Auth Container -->
+    <div id="authContainer" class="auth-container">
+        <div class="auth-box">
+            <h1>💰 Budget Tracker</h1>
+            <p class="auth-subtitle">Manage your finances with ease</p>
+            
+            <div class="auth-tabs">
+                <button class="tab-btn active" onclick="switchTab('login')">Login</button>
+                <button class="tab-btn" onclick="switchTab('register')">Sign Up</button>
+            </div>
+            
+            <!-- Login Form -->
+            <div id="loginTab" class="tab-content active">
+                <input type="email" id="loginEmail" placeholder="Email" class="auth-input">
+                <input type="password" id="loginPassword" placeholder="Password" class="auth-input">
+                <button onclick="login()" class="auth-btn">Login</button>
+                <p class="auth-message" id="loginMessage"></p>
+            </div>
+            
+            <!-- Register Form -->
+            <div id="registerTab" class="tab-content">
+                <input type="text" id="registerName" placeholder="Full Name" class="auth-input">
+                <input type="email" id="registerEmail" placeholder="Email" class="auth-input">
+                <input type="password" id="registerPassword" placeholder="Password" class="auth-input">
+                <input type="password" id="registerConfirm" placeholder="Confirm Password" class="auth-input">
+                <button onclick="register()" class="auth-btn">Sign Up</button>
+                <p class="auth-message" id="registerMessage"></p>
+            </div>
+        </div>
+    </div>
+
+    <!-- App Container -->
+    <div id="appContainer" class="app-container" style="display: none;">
+        <div class="navbar">
+            <h1>💰 Budget Tracker</h1>
+            <div class="navbar-right">
+                <span id="userEmail" class="user-email"></span>
+                <button onclick="logout()" class="logout-btn">Logout</button>
+            </div>
+        </div>
+
+        <div class="container">
+            <!-- Header -->
+            <div class="header">
+                <h2>Your Budget Dashboard</h2>
+                <div class="month-selector">
+                    <button onclick="previousMonth()">←</button>
+                    <div class="month-display" id="monthDisplay">November 2025</div>
+                    <button onclick="nextMonth()">→</button>
+                </div>
+            </div>
+
+            <!-- Ad Space 1 -->
+            <div class="ad-container" style="text-align: center; margin: 20px 0; min-height: 100px;">
+                <ins class="adsbygoogle"
+                     style="display:block"
+                     data-ad-client="ca-pub-xxxxxxxxxxxxxxxx"
+                     data-ad-slot="1234567890"
+                     data-ad-format="auto"
+                     data-full-width-responsive="true"></ins>
+                <script>
+                     (adsbygoogle = window.adsbygoogle || []).push({});
+                </script>
+            </div>
+
+            <!-- Stats Cards -->
+            <div class="dashboard-grid">
+                <div class="stat-card income">
+                    <div class="stat-label">💵 Total Income</div>
+                    <div class="stat-value" id="totalIncome">$0.00</div>
+                </div>
+                <div class="stat-card expense">
+                    <div class="stat-label">🛒 Total Expenses</div>
+                    <div class="stat-value" id="totalExpense">$0.00</div>
+                </div>
+                <div class="stat-card savings">
+                    <div class="stat-label">💳 Remaining</div>
+                    <div class="stat-value" id="balance">$0.00</div>
+                </div>
+                <div class="stat-card debt">
+                    <div class="stat-label">📊 Total Debt</div>
+                    <div class="stat-value" id="totalDebt">$0.00</div>
+                </div>
+            </div>
+
+            <!-- Income Input -->
+            <div class="input-section">
+                <div class="input-title">➕ Add Income</div>
+                <div class="input-grid">
+                    <input type="text" id="incomeSource" placeholder="Source">
+                    <input type="number" id="incomeAmount" placeholder="Amount" step="0.01">
+                    <input type="date" id="incomeDate">
+                    <select id="incomeCategory">
+                        <option value="">Category</option>
+                        <option value="Salary">Salary</option>
+                        <option value="Freelance">Freelance</option>
+                        <option value="Other">Other</option>
+                    </select>
+                    <button class="add-btn" onclick="addIncome()">Add</button>
+                </div>
+            </div>
+
+            <!-- Charts -->
+            <div class="main-grid">
+                <div class="chart-container">
+                    <div class="chart-title">📊 Spending Breakdown</div>
+                    <div class="chart-wrapper"><canvas id="spendingChart"></canvas></div>
+                </div>
+                <div class="chart-container">
+                    <div class="chart-title">📈 Budget vs Actual</div>
+                    <div class="chart-wrapper"><canvas id="budgetChart"></canvas></div>
+                </div>
+            </div>
+
+            <!-- Expense Input -->
+            <div class="input-section">
+                <div class="input-title">➕ Add Expense</div>
+                <div class="input-grid">
+                    <input type="text" id="expenseName" placeholder="Item">
+                    <select id="expenseCategory">
+                        <option value="">Category</option>
+                        <option value="💸 Send Home">💸 Send Home</option>
+                        <option value="🏠 Rent">🏠 Rent</option>
+                        <option value="💡 Utility Bills">💡 Utility Bills</option>
+                        <option value="🚗 Car Fuel">🚗 Car Fuel</option>
+                        <option value="🚙 Car Payment">🚙 Car Payment</option>
+                        <option value="🛡️ Car Insurance">🛡️ Car Insurance</option>
+                        <option value="💰 Personal Loans">💰 Personal Loans</option>
+                        <option value="🏦 Bank Loan">🏦 Bank Loan</option>
+                        <option value="📱 Step Pay">📱 Step Pay</option>
+                        <option value="💳 Credit Card">💳 Credit Card</option>
+                        <option value="🍔 Food/Grocery">🍔 Food/Grocery</option>
+                        <option value="🛍️ Shopping">🛍️ Shopping</option>
+                        <option value="🍽️ Eating/Takeaway">🍽️ Eating/Takeaway</option>
+                        <option value="🎮 Entertainment">🎮 Entertainment</option>
+                        <option value="🍻 Going Out">🍻 Going Out</option>
+                        <option value="☕ Coffee">☕ Coffee</option>
+                        <option value="📞 Phone Bill">📞 Phone Bill</option>
+                        <option value="🚬 Smoke">🚬 Smoke</option>
+                    </select>
+                    <input type="number" id="expenseAmount" placeholder="Amount" step="0.01">
+                    <input type="number" id="expenseBudget" placeholder="Budget" step="0.01">
+                    <button class="add-btn" onclick="addExpense()">Add</button>
+                </div>
+            </div>
+
+            <!-- Tables -->
+            <div class="two-column">
+                <div class="table-container">
+                    <div class="chart-title">💵 Income</div>
+                    <table>
+                        <thead><tr><th>Source</th><th>Category</th><th>Amount</th><th>Date</th><th>Action</th></tr></thead>
+                        <tbody id="incomeTable"><tr><td colspan="5" class="empty-state">No income</td></tr></tbody>
+                    </table>
+                </div>
+                <div class="table-container">
+                    <div class="chart-title">🛒 Expenses</div>
+                    <table>
+                        <thead><tr><th>Item</th><th>Category</th><th>Amount</th><th>Budget</th><th>Progress</th><th>Action</th></tr></thead>
+                        <tbody id="expenseTable"><tr><td colspan="6" class="empty-state">No expenses</td></tr></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Savings & Debt -->
+            <div class="two-column" style="margin-top: 30px;">
+                <div class="input-section">
+                    <div class="input-title">🎯 Savings Goals</div>
+                    <div class="input-grid" style="grid-template-columns: 1fr 1fr 1fr 1fr auto;">
+                        <input type="text" id="savingName" placeholder="Goal name">
+                        <input type="number" id="savingTarget" placeholder="Target amount" step="0.01">
+                        <input type="date" id="savingTargetDate">
+                        <input type="number" id="savingInitial" placeholder="Initial amount" step="0.01">
+                        <button class="add-btn" onclick="addSaving()">Add Goal</button>
+                    </div>
+                    <div id="savingsList" style="margin-top: 20px;"></div>
+                </div>
+                <div class="input-section">
+                    <div class="input-title">💳 Debt Tracker</div>
+                    <div class="input-grid" style="grid-template-columns: 1fr 1fr 1fr auto;">
+                        <input type="text" id="debtName" placeholder="Debt name">
+                        <input type="number" id="debtAmount" placeholder="Amount" step="0.01">
+                        <input type="number" id="debtRate" placeholder="Interest %" step="0.01">
+                        <button class="add-btn" onclick="addDebt()">Add</button>
+                    </div>
+                    <div id="debtList" style="margin-top: 20px;"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modals -->
+    <div id="addContributionModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">Add Contribution</div>
+            <input type="number" id="contributionAmount" class="modal-input" placeholder="Amount to add" step="0.01">
+            <input type="date" id="contributionDate" class="modal-input">
+            <div class="modal-buttons">
+                <button class="modal-btn cancel" onclick="closeContributionModal()">Cancel</button>
+                <button class="modal-btn save" onclick="saveContribution()">Add</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="addPaymentModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">Add Payment</div>
+            <input type="number" id="paymentAmount" class="modal-input" placeholder="Payment amount" step="0.01">
+            <input type="date" id="paymentDate" class="modal-input">
+            <div class="modal-buttons">
+                <button class="modal-btn cancel" onclick="closePaymentModal()">Cancel</button>
+                <button class="modal-btn save" onclick="savePayment()">Add Payment</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>

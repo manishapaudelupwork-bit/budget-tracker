@@ -1,0 +1,1410 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="theme-color" content="#ffc0d9">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Budget Tracker">
+    <title>Budget Dashboard</title>
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect fill='%23ffc0d9' width='192' height='192'/><text x='50%' y='50%' font-size='100' font-weight='bold' text-anchor='middle' dy='.3em' fill='%236b5b95'>💰</text></svg>">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Nunito', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #ffeef8 0%, #e8f4f8 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container { max-width: 1600px; margin: 0 auto; }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+        }
+        .header h1 { color: #6b5b95; font-size: 1.5em; }
+        .month-selector {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        .month-selector button {
+            background: linear-gradient(135deg, #ffc0d9 0%, #ffb3d0 100%);
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+        .month-selector button:hover { transform: scale(1.05); }
+        .month-display {
+            font-weight: 600;
+            color: #6b5b95;
+            min-width: 120px;
+            text-align: center;
+        }
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        .stat-card {
+            background: white;
+            padding: 15px;
+            border-radius: 12px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+            border-left: 5px solid #c7ceea;
+            transition: all 0.3s;
+        }
+        .stat-card:hover { transform: translateY(-3px); box-shadow: 0 8px 25px rgba(0,0,0,0.1); }
+        .stat-card.income { border-left-color: #ffc0d9; }
+        .stat-card.expense { border-left-color: #b5ead7; }
+        .stat-card.savings { border-left-color: #c7ceea; }
+        .stat-card.debt { border-left-color: #ffdab9; }
+        .stat-label { color: #999; font-size: 0.8em; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; }
+        .stat-value { font-size: 1.6em; font-weight: bold; color: #6b5b95; }
+        .stat-change { font-size: 0.75em; color: #999; margin-top: 6px; }
+        .main-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        .chart-container {
+            background: white;
+            padding: 18px;
+            border-radius: 12px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+        }
+        .chart-title { color: #6b5b95; font-size: 1.1em; font-weight: 600; margin-bottom: 15px; }
+        .chart-wrapper { position: relative; height: 250px; }
+        .input-section {
+            background: white;
+            padding: 18px;
+            border-radius: 12px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+            margin-bottom: 20px;
+        }
+        .input-title { color: #6b5b95; font-size: 1.1em; font-weight: 600; margin-bottom: 15px; }
+        .input-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 12px;
+            align-items: end;
+        }
+        input, select {
+            padding: 9px;
+            border: 2px solid #e8d5f2;
+            border-radius: 8px;
+            font-size: 0.9em;
+            font-family: inherit;
+            background-color: white;
+            color: #333;
+            transition: all 0.3s;
+        }
+        input:focus, select:focus {
+            outline: none;
+            border-color: #c7ceea;
+            background-color: #f9f9ff;
+            box-shadow: 0 0 0 3px rgba(199, 206, 234, 0.1);
+        }
+        button.add-btn {
+            padding: 9px 18px;
+            background: linear-gradient(135deg, #ffc0d9 0%, #ffb3d0 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.9em;
+            transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(255, 192, 217, 0.3);
+        }
+        button.add-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(255, 192, 217, 0.4);
+        }
+        .two-column {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        .table-container {
+            background: white;
+            padding: 18px;
+            border-radius: 12px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+            overflow-x: auto;
+        }
+        table { width: 100%; border-collapse: collapse; font-size: 0.9em; }
+        th {
+            background: linear-gradient(135deg, #f9f9ff 0%, #fafafa 100%);
+            color: #6b5b95;
+            padding: 9px;
+            text-align: left;
+            font-weight: 600;
+            border-bottom: 2px solid #e8d5f2;
+            font-size: 0.85em;
+        }
+        td { padding: 9px; border-bottom: 1px solid #f0f0f0; font-size: 0.9em; }
+        tr:hover { background: linear-gradient(135deg, #f9f9ff 0%, #fafafa 100%); }
+        .amount-positive { color: #ff9ec3; font-weight: 600; }
+        .amount-negative { color: #7fdbca; font-weight: 600; }
+        .progress-bar { width: 100%; height: 8px; background: #f0f0f0; border-radius: 4px; overflow: hidden; }
+        .progress-fill { height: 100%; background: linear-gradient(90deg, #b5ead7 0%, #7fdbca 100%); }
+        .delete-btn {
+            background: #ffb3c1;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.75em;
+        }
+        .delete-btn:hover { background: #ff9ec3; }
+        .edit-btn {
+            background: #c7ceea;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.75em;
+            margin-right: 4px;
+        }
+        .edit-btn:hover { background: #a8a8e8; }
+        .empty-state { text-align: center; color: #999; padding: 30px 15px; font-size: 0.9em; }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.4);
+        }
+        
+        .modal-content {
+            background-color: white;
+            margin: 10% auto;
+            padding: 30px;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 400px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+        }
+        
+        .modal-header {
+            color: #6b5b95;
+            font-size: 1.5em;
+            font-weight: 600;
+            margin-bottom: 20px;
+        }
+        
+        .modal-input {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 15px;
+            border: 2px solid #e8d5f2;
+            border-radius: 8px;
+            font-size: 1em;
+            font-family: inherit;
+        }
+        
+        .modal-buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+        }
+        
+        .modal-btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+        
+        .modal-btn.save {
+            background: linear-gradient(135deg, #ffc0d9 0%, #ffb3d0 100%);
+            color: white;
+        }
+        
+        .modal-btn.cancel {
+            background: #f0f0f0;
+            color: #666;
+        }
+        
+        .edit-btn {
+            background: #c7ceea;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.85em;
+            margin-right: 5px;
+            transition: all 0.3s;
+        }
+        
+        .edit-btn:hover {
+            background: #a8a8e8;
+        }
+        @media (max-width: 1200px) {
+            .dashboard-grid { grid-template-columns: repeat(2, 1fr); }
+            .main-grid { grid-template-columns: 1fr; }
+            .two-column { grid-template-columns: 1fr; }
+            .input-grid { grid-template-columns: repeat(3, 1fr); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Navigation Tabs -->
+        <div style="display: flex; gap: 10px; margin-bottom: 20px; background: white; padding: 15px; border-radius: 12px; box-shadow: 0 5px 20px rgba(0,0,0,0.08);">
+            <button onclick="switchPage('dashboard')" id="dashboardTab" class="nav-tab active" style="padding: 10px 20px; background: linear-gradient(135deg, #ffc0d9 0%, #ffb3d0 100%); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 0.95em;">📊 Dashboard</button>
+            <button onclick="switchPage('groceries')" id="groceriesTab" class="nav-tab" style="padding: 10px 20px; background: #f0f0f0; color: #666; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 0.95em;">🛒 Groceries & Shopping</button>
+        </div>
+
+        <!-- Dashboard Page -->
+        <div id="dashboardPage" class="page-content">
+        <div class="header">
+            <h1>💰 Budget Dashboard</h1>
+            <div class="month-selector">
+                <button onclick="previousMonth()">←</button>
+                <div class="month-display" id="monthDisplay">November 2025</div>
+                <button onclick="nextMonth()">→</button>
+            </div>
+        </div>
+
+        <div class="dashboard-grid">
+            <div class="stat-card income">
+                <div class="stat-label">💵 Total Income</div>
+                <div class="stat-value" id="totalIncome">$0.00</div>
+            </div>
+            <div class="stat-card expense">
+                <div class="stat-label">🛒 Total Expenses</div>
+                <div class="stat-value" id="totalExpense">$0.00</div>
+            </div>
+            <div class="stat-card savings">
+                <div class="stat-label">💳 Remaining</div>
+                <div class="stat-value" id="balance">$0.00</div>
+            </div>
+            <div class="stat-card debt">
+                <div class="stat-label">📊 Total Debt</div>
+                <div class="stat-value" id="totalDebt">$0.00</div>
+            </div>
+        </div>
+
+        <div class="input-section">
+            <div class="input-title">➕ Add Income</div>
+            <div class="input-grid">
+                <input type="text" id="incomeSource" placeholder="Source">
+                <input type="number" id="incomeAmount" placeholder="Amount" step="0.01">
+                <input type="date" id="incomeDate">
+                <select id="incomeCategory">
+                    <option value="">Category</option>
+                    <option value="Salary">Salary</option>
+                    <option value="Freelance">Freelance</option>
+                    <option value="Other">Other</option>
+                </select>
+                <button class="add-btn" onclick="addIncome()">Add</button>
+            </div>
+        </div>
+
+        <div class="main-grid">
+            <div class="chart-container" style="padding: 15px;">
+                <div class="chart-title">📊 Spending Breakdown</div>
+                <div class="chart-wrapper"><canvas id="spendingChart"></canvas></div>
+            </div>
+            <div class="chart-container">
+                <div class="chart-title">📈 Budget vs Actual</div>
+                <div class="chart-wrapper"><canvas id="budgetChart"></canvas></div>
+            </div>
+        </div>
+
+        <div class="input-section">
+            <div class="input-title">➕ Add Expense</div>
+            <div class="input-grid">
+                <input type="text" id="expenseName" placeholder="Item">
+                <select id="expenseCategory">
+                    <option value="">Category</option>
+                    <option value="💸 Send Home">💸 Send Home</option>
+                    <option value="🏠 Rent">🏠 Rent</option>
+                    <option value="💡 Utility Bills">💡 Utility Bills</option>
+                    <option value="🚗 Car Fuel">🚗 Car Fuel</option>
+                    <option value="🚙 Car Payment">🚙 Car Payment</option>
+                    <option value="🛡️ Car Insurance">🛡️ Car Insurance</option>
+                    <option value="💰 Personal Loans">💰 Personal Loans</option>
+                    <option value="🏦 Bank Loan">🏦 Bank Loan</option>
+                    <option value="📱 Step Pay">📱 Step Pay</option>
+                    <option value="💳 Credit Card">💳 Credit Card</option>
+                    <option value="🍔 Food/Grocery">🍔 Food/Grocery</option>
+                    <option value="🛍️ Shopping">🛍️ Shopping</option>
+                    <option value="🍽️ Eating/Takeaway">🍽️ Eating/Takeaway</option>
+                    <option value="🎮 Entertainment">🎮 Entertainment</option>
+                    <option value="🍻 Going Out">🍻 Going Out</option>
+                    <option value="☕ Coffee">☕ Coffee</option>
+                    <option value="📞 Phone Bill">📞 Phone Bill</option>
+                    <option value="🚬 Smoke">🚬 Smoke</option>
+                </select>
+                <input type="number" id="expenseAmount" placeholder="Amount" step="0.01">
+                <input type="number" id="expenseBudget" placeholder="Budget" step="0.01">
+                <button class="add-btn" onclick="addExpense()">Add</button>
+            </div>
+        </div>
+
+        <div class="two-column">
+            <div class="table-container">
+                <div class="chart-title">💵 Income</div>
+                <table>
+                    <thead><tr><th>Source</th><th>Category</th><th>Amount</th><th>Date</th><th>Action</th></tr></thead>
+                    <tbody id="incomeTable"><tr><td colspan="5" class="empty-state">No income</td></tr></tbody>
+                </table>
+            </div>
+            <div class="table-container">
+                <div class="chart-title">🛒 Expenses</div>
+                <table>
+                    <thead><tr><th>Item</th><th>Category</th><th>Amount</th><th>Budget</th><th>Progress</th><th>Action</th></tr></thead>
+                    <tbody id="expenseTable"><tr><td colspan="6" class="empty-state">No expenses</td></tr></tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="two-column" style="margin-top: 30px;">
+            <div class="input-section">
+                <div class="input-title">🎯 Savings Goals</div>
+                <div class="input-grid" style="grid-template-columns: 1fr 1fr 1fr 1fr auto;">
+                    <input type="text" id="savingName" placeholder="Goal name">
+                    <input type="number" id="savingTarget" placeholder="Target amount" step="0.01">
+                    <input type="date" id="savingTargetDate" placeholder="Target date">
+                    <input type="number" id="savingInitial" placeholder="Initial amount" step="0.01">
+                    <button class="add-btn" onclick="addSaving()">Add Goal</button>
+                </div>
+                <div id="savingsList" style="margin-top: 20px;"></div>
+            </div>
+            <div class="input-section">
+                <div class="input-title">💳 Debt Tracker</div>
+                <div class="input-grid" style="grid-template-columns: 1fr 1fr 1fr auto;">
+                    <input type="text" id="debtName" placeholder="Debt name">
+                    <input type="number" id="debtAmount" placeholder="Amount" step="0.01">
+                    <input type="number" id="debtRate" placeholder="Interest %" step="0.01">
+                    <button class="add-btn" onclick="addDebt()">Add</button>
+                </div>
+                <div id="debtList" style="margin-top: 20px;"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Income Modal -->
+    <div id="editIncomeModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">Edit Income</div>
+            <input type="text" id="editIncomeSource" class="modal-input" placeholder="Source">
+            <input type="text" id="editIncomeCategory" class="modal-input" placeholder="Category">
+            <input type="number" id="editIncomeAmount" class="modal-input" placeholder="Amount" step="0.01">
+            <input type="date" id="editIncomeDate" class="modal-input">
+            <div class="modal-buttons">
+                <button class="modal-btn cancel" onclick="closeEditIncomeModal()">Cancel</button>
+                <button class="modal-btn save" onclick="saveIncomeEdit()">Save</button>
+            </div>
+        </div>
+        </div>
+        <!-- End Dashboard Page -->
+
+        <!-- Groceries & Shopping Page -->
+        <div id="groceriesPage" class="page-content" style="display: none;">
+            <div class="header">
+                <h1>🛒 Groceries & Shopping Tracker</h1>
+            </div>
+
+            <!-- Add Groceries Section -->
+            <div class="input-section">
+                <div class="input-title">➕ Add Grocery Item</div>
+                <div class="input-grid">
+                    <input type="text" id="groceryItemName" placeholder="Item name">
+                    <input type="number" id="groceryQuantity" placeholder="Quantity" step="1">
+                    <input type="number" id="groceryPrice" placeholder="Price" step="0.01">
+                    <input type="date" id="groceryDate">
+                    <button class="add-btn" onclick="addGroceryItem()">Add</button>
+                </div>
+            </div>
+
+            <!-- Add Shopping Section -->
+            <div class="input-section">
+                <div class="input-title">➕ Add Shopping Item</div>
+                <div class="input-grid">
+                    <input type="text" id="shoppingItemName" placeholder="Item name">
+                    <input type="number" id="shoppingQuantity" placeholder="Quantity" step="1">
+                    <input type="number" id="shoppingPrice" placeholder="Price" step="0.01">
+                    <input type="date" id="shoppingDate">
+                    <button class="add-btn" onclick="addShoppingItem()">Add</button>
+                </div>
+            </div>
+
+            <!-- Display Tracked Items -->
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 30px;">
+                <div class="input-section">
+                    <div class="input-title">🍔 Groceries Tracked</div>
+                    <div id="groceriesTracker"></div>
+                </div>
+                <div class="input-section">
+                    <div class="input-title">🛍️ Shopping Tracked</div>
+                    <div id="shoppingTracker"></div>
+                </div>
+            </div>
+
+            <!-- Stock Analysis Section -->
+            <div class="input-section" style="margin-top: 30px;">
+                <div class="input-title">📊 Stock Analysis (2+ Weeks Old)</div>
+                <div id="stockAnalysis"></div>
+            </div>
+        </div>
+        <!-- End Groceries Page -->
+    </div>
+
+    <!-- Edit Expense Modal -->
+    <div id="editExpenseModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">Edit Expense</div>
+            <input type="text" id="editExpenseName" class="modal-input" placeholder="Item name">
+            <input type="text" id="editExpenseCategory" class="modal-input" placeholder="Category">
+            <input type="number" id="editExpenseAmount" class="modal-input" placeholder="Amount" step="0.01">
+            <input type="number" id="editExpenseBudget" class="modal-input" placeholder="Budget" step="0.01">
+            <div class="modal-buttons">
+                <button class="modal-btn cancel" onclick="closeEditExpenseModal()">Cancel</button>
+                <button class="modal-btn save" onclick="saveExpenseEdit()">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Savings Contribution Modal -->
+    <div id="addContributionModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">Add Contribution</div>
+            <input type="number" id="contributionAmount" class="modal-input" placeholder="Amount to add" step="0.01">
+            <input type="date" id="contributionDate" class="modal-input">
+            <div class="modal-buttons">
+                <button class="modal-btn cancel" onclick="closeContributionModal()">Cancel</button>
+                <button class="modal-btn save" onclick="saveContribution()">Add</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Debt Payment Modal -->
+    <div id="addPaymentModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">Add Payment</div>
+            <input type="number" id="paymentAmount" class="modal-input" placeholder="Payment amount" step="0.01">
+            <input type="date" id="paymentDate" class="modal-input">
+            <div class="modal-buttons">
+                <button class="modal-btn cancel" onclick="closePaymentModal()">Cancel</button>
+                <button class="modal-btn save" onclick="savePayment()">Add Payment</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Track Items Modal -->
+    <div id="trackItemsModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">📦 Track Items</div>
+            <div style="margin-bottom: 15px;">
+                <input type="text" id="itemName" class="modal-input" placeholder="Item name (e.g., Milk, Bread)">
+                <input type="number" id="itemQuantity" class="modal-input" placeholder="Quantity" step="1">
+                <input type="number" id="itemPrice" class="modal-input" placeholder="Price" step="0.01">
+                <input type="date" id="itemDate" class="modal-input">
+                <button class="modal-btn save" onclick="addTrackedItem()" style="width: 100%; margin-top: 10px;">Add Item</button>
+            </div>
+            <div id="trackedItemsList" style="max-height: 300px; overflow-y: auto;"></div>
+            <div class="modal-buttons">
+                <button class="modal-btn cancel" onclick="closeTrackItemsModal()">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Stock Count Modal -->
+    <div id="stockCountModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">📦 Update Stock Count</div>
+            <div style="margin-bottom: 15px;">
+                <p id="stockItemName" style="color: #6b5b95; font-weight: 600; margin-bottom: 10px;"></p>
+                <label style="color: #999; font-size: 0.9em;">Stock Remaining (how many left?):</label>
+                <input type="number" id="stockRemaining" class="modal-input" placeholder="Quantity remaining" step="1" min="0">
+                <div style="font-size: 0.85em; color: #999; margin-top: 10px; padding: 10px; background: #f9f9ff; border-radius: 8px;">
+                    <strong>Recommendation:</strong> <span id="stockRecommendation"></span>
+                </div>
+            </div>
+            <div class="modal-buttons">
+                <button class="modal-btn cancel" onclick="closeStockCountModal()">Cancel</button>
+                <button class="modal-btn save" onclick="saveStockCount()">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let allData = {}, currentMonth = new Date(), spendingChart, budgetChart;
+
+        function switchPage(page) {
+            // Hide all pages
+            document.getElementById('dashboardPage').style.display = 'none';
+            document.getElementById('groceriesPage').style.display = 'none';
+            
+            // Reset tab styles
+            document.getElementById('dashboardTab').style.background = '#f0f0f0';
+            document.getElementById('dashboardTab').style.color = '#666';
+            document.getElementById('groceriesTab').style.background = '#f0f0f0';
+            document.getElementById('groceriesTab').style.color = '#666';
+            
+            // Show selected page
+            if (page === 'dashboard') {
+                document.getElementById('dashboardPage').style.display = 'block';
+                document.getElementById('dashboardTab').style.background = 'linear-gradient(135deg, #ffc0d9 0%, #ffb3d0 100%)';
+                document.getElementById('dashboardTab').style.color = 'white';
+            } else if (page === 'groceries') {
+                document.getElementById('groceriesPage').style.display = 'block';
+                document.getElementById('groceriesTab').style.background = 'linear-gradient(135deg, #b5ead7 0%, #7fdbca 100%)';
+                document.getElementById('groceriesTab').style.color = 'white';
+                updateGroceriesPage();
+            }
+        }
+
+        function getMonthKey() { return currentMonth.toISOString().slice(0, 7); }
+        function getCurrentData() {
+            const key = getMonthKey();
+            if (!allData[key]) allData[key] = { income: [], expenses: [] };
+            // Ensure global savings and debt exist
+            if (!allData.globalSavings) allData.globalSavings = [];
+            if (!allData.globalDebt) allData.globalDebt = [];
+            return allData[key];
+        }
+        function getGlobalSavings() {
+            if (!allData.globalSavings) allData.globalSavings = [];
+            return allData.globalSavings;
+        }
+        function getGlobalDebt() {
+            if (!allData.globalDebt) allData.globalDebt = [];
+            return allData.globalDebt;
+        }
+        function getTrackedItems() {
+            if (!allData.trackedItems) allData.trackedItems = [];
+            return allData.trackedItems;
+        }
+        function updateMonthDisplay() {
+            const options = { month: 'long', year: 'numeric' };
+            document.getElementById('monthDisplay').textContent = currentMonth.toLocaleDateString('en-US', options);
+        }
+        function previousMonth() { currentMonth.setMonth(currentMonth.getMonth() - 1); updateMonthDisplay(); update(); }
+        function nextMonth() { currentMonth.setMonth(currentMonth.getMonth() + 1); updateMonthDisplay(); update(); }
+
+        document.getElementById('incomeDate').valueAsDate = new Date();
+        if (document.getElementById('groceryDate')) document.getElementById('groceryDate').valueAsDate = new Date();
+        if (document.getElementById('shoppingDate')) document.getElementById('shoppingDate').valueAsDate = new Date();
+
+        function addIncome() {
+            const source = document.getElementById('incomeSource').value.trim();
+            const amount = parseFloat(document.getElementById('incomeAmount').value);
+            const date = document.getElementById('incomeDate').value;
+            const category = document.getElementById('incomeCategory').value;
+            if (!source || !amount || amount <= 0 || !date || !category) { alert('Fill all fields'); return; }
+            getCurrentData().income.push({ source, amount, date, category });
+            document.getElementById('incomeSource').value = '';
+            document.getElementById('incomeAmount').value = '';
+            document.getElementById('incomeDate').valueAsDate = new Date();
+            document.getElementById('incomeCategory').value = '';
+            saveData(); update();
+        }
+
+        function addExpense() {
+            const name = document.getElementById('expenseName').value.trim();
+            const category = document.getElementById('expenseCategory').value;
+            const amount = parseFloat(document.getElementById('expenseAmount').value);
+            const budgetInput = document.getElementById('expenseBudget').value.trim();
+            const budget = budgetInput ? parseFloat(budgetInput) : null;
+            
+            if (!name || !category || !amount || amount <= 0) { alert('Fill required fields'); return; }
+            getCurrentData().expenses.push({ name, category, amount, budget });
+            document.getElementById('expenseName').value = '';
+            document.getElementById('expenseCategory').value = '';
+            document.getElementById('expenseAmount').value = '';
+            document.getElementById('expenseBudget').value = '';
+            saveData(); update();
+        }
+
+        let currentSavingIdx = null;
+
+        function addSaving() {
+            const name = document.getElementById('savingName').value.trim();
+            const target = parseFloat(document.getElementById('savingTarget').value);
+            const targetDate = document.getElementById('savingTargetDate').value;
+            const initial = parseFloat(document.getElementById('savingInitial').value) || 0;
+
+            if (!name || !target || target <= 0 || !targetDate) { alert('Fill all fields'); return; }
+            getGlobalSavings().push({ name, target, targetDate, current: initial, contributions: initial > 0 ? [{ amount: initial, date: new Date().toISOString().split('T')[0] }] : [] });
+            document.getElementById('savingName').value = '';
+            document.getElementById('savingTarget').value = '';
+            document.getElementById('savingTargetDate').value = '';
+            document.getElementById('savingInitial').value = '';
+            saveData(); update();
+        }
+
+        function openContributionModal(idx) {
+            currentSavingIdx = idx;
+            document.getElementById('contributionAmount').value = '';
+            document.getElementById('contributionDate').valueAsDate = new Date();
+            document.getElementById('addContributionModal').style.display = 'block';
+        }
+
+        function closeContributionModal() {
+            document.getElementById('addContributionModal').style.display = 'none';
+            currentSavingIdx = null;
+        }
+
+        function saveContribution() {
+            if (currentSavingIdx === null) return;
+            const amount = parseFloat(document.getElementById('contributionAmount').value);
+            const date = document.getElementById('contributionDate').value;
+            if (!amount || amount <= 0) { alert('Enter valid amount'); return; }
+            
+            const savings = getGlobalSavings();
+            const saving = savings[currentSavingIdx];
+            if (!saving.contributions) saving.contributions = [];
+            saving.contributions.push({ amount, date });
+            saving.current = saving.contributions.reduce((sum, c) => sum + c.amount, 0);
+            saveData();
+            closeContributionModal();
+            update();
+        }
+
+        let currentDebtIdx = null;
+
+        function addDebt() {
+            const name = document.getElementById('debtName').value.trim();
+            const amount = parseFloat(document.getElementById('debtAmount').value);
+            const rate = parseFloat(document.getElementById('debtRate').value) || 0;
+            if (!name || !amount || amount <= 0) { alert('Fill all fields'); return; }
+            getGlobalDebt().push({ name, amount, rate, paid: 0, payments: [] });
+            document.getElementById('debtName').value = '';
+            document.getElementById('debtAmount').value = '';
+            document.getElementById('debtRate').value = '';
+            saveData(); update();
+        }
+
+        function openPaymentModal(idx) {
+            currentDebtIdx = idx;
+            document.getElementById('paymentAmount').value = '';
+            document.getElementById('paymentDate').valueAsDate = new Date();
+            document.getElementById('addPaymentModal').style.display = 'block';
+        }
+
+        function closePaymentModal() {
+            document.getElementById('addPaymentModal').style.display = 'none';
+            currentDebtIdx = null;
+        }
+
+        function savePayment() {
+            if (currentDebtIdx === null) return;
+            const amount = parseFloat(document.getElementById('paymentAmount').value);
+            const date = document.getElementById('paymentDate').value;
+            if (!amount || amount <= 0) { alert('Enter valid amount'); return; }
+            
+            const debts = getGlobalDebt();
+            const debt = debts[currentDebtIdx];
+            if (!debt.payments) debt.payments = [];
+            debt.payments.push({ amount, date });
+            debt.paid = debt.payments.reduce((sum, p) => sum + p.amount, 0);
+            saveData();
+            closePaymentModal();
+            update();
+        }
+
+        function deleteIncome(idx) { getCurrentData().income.splice(idx, 1); saveData(); update(); }
+        function deleteExpense(idx) { getCurrentData().expenses.splice(idx, 1); saveData(); update(); }
+        function deleteSaving(idx) { getGlobalSavings().splice(idx, 1); saveData(); update(); }
+        function deleteDebt(idx) { getGlobalDebt().splice(idx, 1); saveData(); update(); }
+
+        function openTrackItemsModal(category) {
+            document.getElementById('itemName').value = '';
+            document.getElementById('itemQuantity').value = '';
+            document.getElementById('itemPrice').value = '';
+            document.getElementById('itemDate').valueAsDate = new Date();
+            document.getElementById('trackItemsModal').dataset.category = category;
+            updateTrackedItemsList();
+            document.getElementById('trackItemsModal').style.display = 'block';
+        }
+
+        function closeTrackItemsModal() {
+            document.getElementById('trackItemsModal').style.display = 'none';
+        }
+
+        function addTrackedItem() {
+            const category = document.getElementById('trackItemsModal').dataset.category;
+            const name = document.getElementById('itemName').value.trim();
+            const quantity = parseInt(document.getElementById('itemQuantity').value);
+            const price = parseFloat(document.getElementById('itemPrice').value);
+            const date = document.getElementById('itemDate').value;
+            
+            if (!name || !quantity || !price || !date) {
+                alert('Fill all fields');
+                return;
+            }
+            
+            const items = getTrackedItems();
+            items.push({
+                name,
+                quantity,
+                price,
+                date,
+                category,
+                status: 'Active',
+                daysOld: 0
+            });
+            
+            document.getElementById('itemName').value = '';
+            document.getElementById('itemQuantity').value = '';
+            document.getElementById('itemPrice').value = '';
+            saveData();
+            updateTrackedItemsList();
+        }
+
+        function updateTrackedItemsList() {
+            const category = document.getElementById('trackItemsModal').dataset.category;
+            const items = getTrackedItems().filter(item => item.category === category);
+            const container = document.getElementById('trackedItemsList');
+            
+            if (items.length === 0) {
+                container.innerHTML = '<div class="empty-state">No items tracked yet</div>';
+                return;
+            }
+            
+            container.innerHTML = items.map((item, idx) => {
+                const purchaseDate = new Date(item.date);
+                const today = new Date();
+                const daysOld = Math.floor((today - purchaseDate) / (1000 * 60 * 60 * 24));
+                const weeksOld = Math.floor(daysOld / 7);
+                
+                let statusColor = '#7fdbca';
+                let statusText = '✅ Active';
+                if (daysOld > 14) {
+                    statusColor = '#ff9ec3';
+                    statusText = '⚠️ Check if used (2+ weeks)';
+                } else if (daysOld > 7) {
+                    statusColor = '#ffe8d6';
+                    statusText = '🔍 Check usage (1+ week)';
+                }
+                
+                return `
+                    <div style="padding: 10px; margin-bottom: 10px; background: #f9f9ff; border-radius: 8px; border-left: 4px solid ${statusColor};">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                            <strong>${item.name}</strong>
+                            <button class="delete-btn" onclick="deleteTrackedItem('${category}', ${idx})" style="padding: 4px 8px; font-size: 0.7em;">Delete</button>
+                        </div>
+                        <div style="font-size: 0.85em; color: #999; margin-bottom: 6px;">
+                            <strong>Qty:</strong> ${item.quantity} | <strong>Price:</strong> $${item.price.toFixed(2)} | <strong>Date:</strong> ${item.date}
+                        </div>
+                        <div style="font-size: 0.8em; color: ${statusColor}; font-weight: 600;">
+                            ${statusText} (${daysOld} days ago)
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function deleteTrackedItem(category, idx) {
+            const items = getTrackedItems();
+            const categoryItems = items.filter(item => item.category === category);
+            const itemToDelete = categoryItems[idx];
+            const actualIdx = items.indexOf(itemToDelete);
+            items.splice(actualIdx, 1);
+            saveData();
+            updateTrackedItemsList();
+            updateGroceriesPage();
+        }
+
+        function addGroceryItem() {
+            const name = document.getElementById('groceryItemName').value.trim();
+            const quantity = parseInt(document.getElementById('groceryQuantity').value);
+            const price = parseFloat(document.getElementById('groceryPrice').value);
+            const date = document.getElementById('groceryDate').value;
+            
+            if (!name || !quantity || !price || !date) {
+                alert('Fill all fields');
+                return;
+            }
+            
+            // Add to tracked items
+            const items = getTrackedItems();
+            items.push({
+                name,
+                quantity,
+                price,
+                date,
+                category: '🍔 Food/Grocery',
+                status: 'Active'
+            });
+            
+            // Add to expenses
+            const data = getCurrentData();
+            const totalPrice = quantity * price;
+            data.expenses.push({
+                name: name,
+                category: '🍔 Food/Grocery',
+                amount: totalPrice,
+                budget: null
+            });
+            
+            // Clear inputs
+            document.getElementById('groceryItemName').value = '';
+            document.getElementById('groceryQuantity').value = '';
+            document.getElementById('groceryPrice').value = '';
+            document.getElementById('groceryDate').valueAsDate = new Date();
+            
+            saveData();
+            updateGroceriesPage();
+            update();
+        }
+
+        function addShoppingItem() {
+            const name = document.getElementById('shoppingItemName').value.trim();
+            const quantity = parseInt(document.getElementById('shoppingQuantity').value);
+            const price = parseFloat(document.getElementById('shoppingPrice').value);
+            const date = document.getElementById('shoppingDate').value;
+            
+            if (!name || !quantity || !price || !date) {
+                alert('Fill all fields');
+                return;
+            }
+            
+            // Add to tracked items
+            const items = getTrackedItems();
+            items.push({
+                name,
+                quantity,
+                price,
+                date,
+                category: '🛍️ Shopping',
+                status: 'Active'
+            });
+            
+            // Add to expenses
+            const data = getCurrentData();
+            const totalPrice = quantity * price;
+            data.expenses.push({
+                name: name,
+                category: '🛍️ Shopping',
+                amount: totalPrice,
+                budget: null
+            });
+            
+            // Clear inputs
+            document.getElementById('shoppingItemName').value = '';
+            document.getElementById('shoppingQuantity').value = '';
+            document.getElementById('shoppingPrice').value = '';
+            document.getElementById('shoppingDate').valueAsDate = new Date();
+            
+            saveData();
+            updateGroceriesPage();
+            update();
+        }
+
+        let currentStockItem = null;
+
+        function updateStockAnalysis(oldItems) {
+            const container = document.getElementById('stockAnalysis');
+            
+            if (oldItems.length === 0) {
+                container.innerHTML = '<div class="empty-state">No items older than 2 weeks</div>';
+                return;
+            }
+            
+            container.innerHTML = oldItems.map((item, idx) => {
+                const purchaseDate = new Date(item.date);
+                const today = new Date();
+                const daysOld = Math.floor((today - purchaseDate) / (1000 * 60 * 60 * 24));
+                const weeksOld = Math.floor(daysOld / 7);
+                
+                return `
+                    <div style="padding: 12px; margin-bottom: 10px; background: #fff3cd; border-radius: 8px; border-left: 4px solid #ff9ec3;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                            <strong>${item.name}</strong>
+                            <button class="edit-btn" onclick="openStockCountModal('${item.name}', ${item.quantity}, ${idx})" style="background: #ff9ec3;">📊 Count Stock</button>
+                        </div>
+                        <div style="font-size: 0.85em; color: #666; margin-bottom: 6px;">
+                            <strong>Purchased:</strong> ${item.date} (${daysOld} days / ${weeksOld} weeks ago) | <strong>Qty:</strong> ${item.quantity} | <strong>Price:</strong> $${item.price.toFixed(2)}
+                        </div>
+                        <div style="font-size: 0.8em; color: #d9534f; font-weight: 600;">
+                            ⚠️ This item is ${weeksOld}+ weeks old. Check if you still have it and how much is left!
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function openStockCountModal(itemName, originalQty, idx) {
+            currentStockItem = { name: itemName, originalQty: originalQty, idx: idx };
+            document.getElementById('stockItemName').textContent = `Item: ${itemName}`;
+            document.getElementById('stockRemaining').value = '';
+            document.getElementById('stockRemaining').placeholder = `Original quantity: ${originalQty}`;
+            document.getElementById('stockCountModal').style.display = 'block';
+        }
+
+        function closeStockCountModal() {
+            document.getElementById('stockCountModal').style.display = 'none';
+            currentStockItem = null;
+        }
+
+        function saveStockCount() {
+            if (!currentStockItem) return;
+            
+            const remaining = parseInt(document.getElementById('stockRemaining').value);
+            const original = currentStockItem.originalQty;
+            
+            if (remaining < 0) {
+                alert('Stock cannot be negative');
+                return;
+            }
+            
+            const used = original - remaining;
+            const usagePercent = ((used / original) * 100).toFixed(1);
+            
+            let recommendation = '';
+            if (remaining === 0) {
+                recommendation = '✅ Used completely! Good purchase frequency.';
+            } else if (usagePercent >= 75) {
+                recommendation = '✅ Used 75%+! Keep buying at this frequency.';
+            } else if (usagePercent >= 50) {
+                recommendation = '⚠️ Used 50-75%. Consider buying slightly less often.';
+            } else if (usagePercent >= 25) {
+                recommendation = '⚠️ Used 25-50%. You might be buying too much. Reduce frequency.';
+            } else {
+                recommendation = '❌ Used less than 25%. This is waste! Stop buying or buy much less often.';
+            }
+            
+            alert(`Stock Analysis:\n\nOriginal: ${original}\nRemaining: ${remaining}\nUsed: ${used} (${usagePercent}%)\n\n${recommendation}`);
+            closeStockCountModal();
+        }
+
+        function updateGroceriesPage() {
+            const items = getTrackedItems();
+            const groceries = items.filter(item => item.category.includes('Food/Grocery'));
+            const shopping = items.filter(item => item.category.includes('Shopping'));
+            
+            // Stock Analysis for items 2+ weeks old
+            const oldItems = items.filter(item => {
+                const purchaseDate = new Date(item.date);
+                const today = new Date();
+                const daysOld = Math.floor((today - purchaseDate) / (1000 * 60 * 60 * 24));
+                return daysOld >= 14;
+            });
+            
+            updateStockAnalysis(oldItems);
+            
+            document.getElementById('groceriesTracker').innerHTML = groceries.length === 0 ? 
+                '<div class="empty-state">No items tracked</div>' :
+                groceries.map((item, idx) => {
+                    const purchaseDate = new Date(item.date);
+                    const today = new Date();
+                    const daysOld = Math.floor((today - purchaseDate) / (1000 * 60 * 60 * 24));
+                    let statusColor = '#7fdbca';
+                    let statusText = '✅ Active';
+                    if (daysOld > 14) {
+                        statusColor = '#ff9ec3';
+                        statusText = '⚠️ Check if used (2+ weeks)';
+                    } else if (daysOld > 7) {
+                        statusColor = '#ffe8d6';
+                        statusText = '🔍 Check usage (1+ week)';
+                    }
+                    return `
+                        <div style="padding: 12px; margin-bottom: 10px; background: #f9f9ff; border-radius: 8px; border-left: 4px solid ${statusColor};">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                                <strong>${item.name}</strong>
+                                <button class="delete-btn" onclick="deleteTrackedItem('Food/Grocery', ${groceries.indexOf(item)})" style="padding: 4px 8px; font-size: 0.7em;">Delete</button>
+                            </div>
+                            <div style="font-size: 0.85em; color: #999; margin-bottom: 6px;">
+                                <strong>Qty:</strong> ${item.quantity} | <strong>Price:</strong> $${item.price.toFixed(2)} | <strong>Date:</strong> ${item.date}
+                            </div>
+                            <div style="font-size: 0.8em; color: ${statusColor}; font-weight: 600;">
+                                ${statusText} (${daysOld} days ago)
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            
+            document.getElementById('shoppingTracker').innerHTML = shopping.length === 0 ? 
+                '<div class="empty-state">No items tracked</div>' :
+                shopping.map((item, idx) => {
+                    const purchaseDate = new Date(item.date);
+                    const today = new Date();
+                    const daysOld = Math.floor((today - purchaseDate) / (1000 * 60 * 60 * 24));
+                    let statusColor = '#7fdbca';
+                    let statusText = '✅ Active';
+                    if (daysOld > 14) {
+                        statusColor = '#ff9ec3';
+                        statusText = '⚠️ Check if used (2+ weeks)';
+                    } else if (daysOld > 7) {
+                        statusColor = '#ffe8d6';
+                        statusText = '🔍 Check usage (1+ week)';
+                    }
+                    return `
+                        <div style="padding: 12px; margin-bottom: 10px; background: #f9f9ff; border-radius: 8px; border-left: 4px solid ${statusColor};">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                                <strong>${item.name}</strong>
+                                <button class="delete-btn" onclick="deleteTrackedItem('Shopping', ${shopping.indexOf(item)})" style="padding: 4px 8px; font-size: 0.7em;">Delete</button>
+                            </div>
+                            <div style="font-size: 0.85em; color: #999; margin-bottom: 6px;">
+                                <strong>Qty:</strong> ${item.quantity} | <strong>Price:</strong> $${item.price.toFixed(2)} | <strong>Date:</strong> ${item.date}
+                            </div>
+                            <div style="font-size: 0.8em; color: ${statusColor}; font-weight: 600;">
+                                ${statusText} (${daysOld} days ago)
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+        }
+
+        function saveData() { localStorage.setItem('budgetDashboardData', JSON.stringify(allData)); }
+        function loadData() { const saved = localStorage.getItem('budgetDashboardData'); allData = saved ? JSON.parse(saved) : {}; }
+
+        function updateStats() {
+            const data = getCurrentData();
+            const totalIncome = data.income.reduce((sum, item) => sum + item.amount, 0);
+            // Only count expenses that are NOT grocery or shopping
+            const totalExpense = data.expenses.filter(item => !item.category.includes('Food/Grocery') && !item.category.includes('Shopping')).reduce((sum, item) => sum + item.amount, 0);
+            const totalDebt = getGlobalDebt().reduce((sum, item) => sum + item.amount, 0);
+            const balance = totalIncome - totalExpense;
+            document.getElementById('totalIncome').textContent = `$${totalIncome.toFixed(2)}`;
+            document.getElementById('totalExpense').textContent = `$${totalExpense.toFixed(2)}`;
+            document.getElementById('balance').textContent = `$${balance.toFixed(2)}`;
+            document.getElementById('totalDebt').textContent = `$${totalDebt.toFixed(2)}`;
+        }
+
+        let editingIncomeIdx = null;
+        let editingExpenseIdx = null;
+
+        // Income Edit Functions
+        function openEditIncomeModal(idx) {
+            const data = getCurrentData();
+            const item = data.income[idx];
+            document.getElementById('editIncomeSource').value = item.source;
+            document.getElementById('editIncomeCategory').value = item.category;
+            document.getElementById('editIncomeAmount').value = item.amount;
+            document.getElementById('editIncomeDate').value = item.date;
+            editingIncomeIdx = idx;
+            document.getElementById('editIncomeModal').style.display = 'block';
+        }
+
+        function closeEditIncomeModal() {
+            document.getElementById('editIncomeModal').style.display = 'none';
+            editingIncomeIdx = null;
+        }
+
+        function saveIncomeEdit() {
+            if (editingIncomeIdx === null) return;
+            const data = getCurrentData();
+            data.income[editingIncomeIdx] = {
+                source: document.getElementById('editIncomeSource').value,
+                category: document.getElementById('editIncomeCategory').value,
+                amount: parseFloat(document.getElementById('editIncomeAmount').value),
+                date: document.getElementById('editIncomeDate').value
+            };
+            saveData();
+            closeEditIncomeModal();
+            update();
+        }
+
+        // Expense Edit Functions
+        function openEditExpenseModal(idx) {
+            const data = getCurrentData();
+            const item = data.expenses[idx];
+            document.getElementById('editExpenseName').value = item.name;
+            document.getElementById('editExpenseCategory').value = item.category;
+            document.getElementById('editExpenseAmount').value = item.amount;
+            document.getElementById('editExpenseBudget').value = item.budget;
+            editingExpenseIdx = idx;
+            document.getElementById('editExpenseModal').style.display = 'block';
+        }
+
+        function closeEditExpenseModal() {
+            document.getElementById('editExpenseModal').style.display = 'none';
+            editingExpenseIdx = null;
+        }
+
+        function saveExpenseEdit() {
+            if (editingExpenseIdx === null) return;
+            const data = getCurrentData();
+            data.expenses[editingExpenseIdx] = {
+                name: document.getElementById('editExpenseName').value,
+                category: document.getElementById('editExpenseCategory').value,
+                amount: parseFloat(document.getElementById('editExpenseAmount').value),
+                budget: parseFloat(document.getElementById('editExpenseBudget').value)
+            };
+            saveData();
+            closeEditExpenseModal();
+            update();
+        }
+
+        window.onclick = function(event) {
+            const incomeModal = document.getElementById('editIncomeModal');
+            const expenseModal = document.getElementById('editExpenseModal');
+            const contributionModal = document.getElementById('addContributionModal');
+            const paymentModal = document.getElementById('addPaymentModal');
+            const trackItemsModal = document.getElementById('trackItemsModal');
+            if (event.target === incomeModal) {
+                closeEditIncomeModal();
+            }
+            if (event.target === expenseModal) {
+                closeEditExpenseModal();
+            }
+            if (event.target === contributionModal) {
+                closeContributionModal();
+            }
+            if (event.target === paymentModal) {
+                closePaymentModal();
+            }
+            if (event.target === trackItemsModal) {
+                closeTrackItemsModal();
+            }
+        }
+
+        function updateIncomeTable() {
+            const data = getCurrentData();
+            const tbody = document.getElementById('incomeTable');
+            if (data.income.length === 0) { tbody.innerHTML = '<tr><td colspan="5" class="empty-state">No income</td></tr>'; return; }
+            tbody.innerHTML = data.income.map((item, idx) => `<tr><td>${item.source}</td><td>${item.category}</td><td class="amount-positive">+$${item.amount.toFixed(2)}</td><td>${item.date}</td><td><button class="edit-btn" onclick="openEditIncomeModal(${idx})">Edit</button><button class="delete-btn" onclick="deleteIncome(${idx})">Delete</button></td></tr>`).join('');
+        }
+
+        function updateExpenseTable() {
+            const data = getCurrentData();
+            const tbody = document.getElementById('expenseTable');
+            // Filter out grocery and shopping expenses
+            const filteredExpenses = data.expenses.filter(item => !item.category.includes('Food/Grocery') && !item.category.includes('Shopping'));
+            if (filteredExpenses.length === 0) { tbody.innerHTML = '<tr><td colspan="6" class="empty-state">No expenses</td></tr>'; return; }
+            tbody.innerHTML = filteredExpenses.map((item, idx) => {
+                const actualIdx = data.expenses.indexOf(item);
+                const hasBudget = item.budget !== null && item.budget !== undefined && item.budget > 0;
+                const pct = hasBudget ? (item.amount / item.budget * 100) : 0;
+                const budgetDisplay = hasBudget ? `$${item.budget.toFixed(2)}` : 'No Budget';
+                const progressDisplay = hasBudget ? `<div class="progress-bar"><div class="progress-fill" style="width: ${Math.min(pct, 100)}%"></div></div>${pct.toFixed(0)}%` : '<span style="color: #999;">-</span>';
+                return `<tr><td>${item.name}</td><td>${item.category}</td><td class="amount-negative">-$${item.amount.toFixed(2)}</td><td>${budgetDisplay}</td><td>${progressDisplay}</td><td><button class="edit-btn" onclick="openEditExpenseModal(${actualIdx})">Edit</button><button class="delete-btn" onclick="deleteExpense(${actualIdx})">Delete</button></td></tr>`;
+            }).join('');
+        }
+
+        function updateSavingsList() {
+            const savings = getGlobalSavings();
+            const container = document.getElementById('savingsList');
+            if (savings.length === 0) { container.innerHTML = '<div class="empty-state">No savings goals</div>'; return; }
+            container.innerHTML = savings.map((item, idx) => {
+                const pct = (item.current / item.target * 100).toFixed(1);
+                const daysLeft = Math.ceil((new Date(item.targetDate) - new Date()) / (1000 * 60 * 60 * 24));
+                const remaining = (item.target - item.current).toFixed(2);
+                
+                // Determine warning level
+                let warningIcon = '';
+                let warningColor = '#c7ceea';
+                let warningMsg = '';
+                const extraSaved = item.current - item.target;
+                
+                if (pct >= 100) {
+                    warningIcon = '🎉';
+                    warningColor = '#7fdbca';
+                    warningMsg = extraSaved > 0 ? `Goal Reached! You saved $${extraSaved.toFixed(2)} more!` : 'Goal Reached!';
+                } else if (pct >= 90) {
+                    warningIcon = '🚀';
+                    warningColor = '#d4f1d4';
+                    warningMsg = 'Almost there! Just 10% to go!';
+                } else if (pct >= 75) {
+                    warningIcon = '⭐';
+                    warningColor = '#ffe8d6';
+                    warningMsg = '75% complete - Great progress!';
+                } else if (pct >= 50) {
+                    warningIcon = '💪';
+                    warningColor = '#ffdab9';
+                    warningMsg = 'Halfway there!';
+                }
+                
+                return `<div style="margin-bottom: 15px; padding: 15px; background: #f9f9ff; border-radius: 8px; border-left: 5px solid ${warningColor};">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                        <strong style="color: #6b5b95;">${item.name}</strong>
+                        <div style="display: flex; gap: 8px;">
+                            <button class="edit-btn" onclick="openContributionModal(${idx})">+ Add</button>
+                            <button class="delete-btn" onclick="deleteSaving(${idx})">Delete</button>
+                        </div>
+                    </div>
+                    ${warningMsg ? `<div style="font-size: 0.9em; color: ${warningColor}; margin-bottom: 8px; font-weight: 600;">${warningIcon} ${warningMsg}</div>` : ''}
+                    <div style="font-size: 0.9em; color: #999; margin-bottom: 8px;">
+                        <strong>Saved:</strong> $${item.current.toFixed(2)} / $${item.target.toFixed(2)} | <strong>Remaining:</strong> $${remaining}
+                    </div>
+                    <div style="font-size: 0.85em; color: #999; margin-bottom: 10px;">
+                        <strong>Target Date:</strong> ${item.targetDate} (${daysLeft > 0 ? daysLeft + ' days left' : daysLeft === 0 ? 'Today!' : 'Deadline passed'})
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: ${Math.min(pct, 100)}%; background: linear-gradient(90deg, ${warningColor} 0%, ${warningColor} 100%);"></div>
+                    </div>
+                    <div style="font-size: 0.85em; color: #999; margin-top: 8px; text-align: right;">${pct}% complete</div>
+                </div>`;
+            }).join('');
+        }
+
+        function updateDebtList() {
+            const debts = getGlobalDebt();
+            const container = document.getElementById('debtList');
+            if (debts.length === 0) { container.innerHTML = '<div class="empty-state">No debts</div>'; return; }
+            container.innerHTML = debts.map((item, idx) => {
+                const interest = (item.amount * item.rate / 100).toFixed(2);
+                const paid = item.paid || 0;
+                const remaining = (item.amount - paid).toFixed(2);
+                const pct = (paid / item.amount * 100).toFixed(1);
+                return `<div style="margin-bottom: 15px; padding: 15px; background: #f9f9ff; border-radius: 8px; border-left: 4px solid #ffdab9;">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                        <strong style="color: #6b5b95;">${item.name}</strong>
+                        <div style="display: flex; gap: 8px;">
+                            <button class="edit-btn" onclick="openPaymentModal(${idx})">+ Pay</button>
+                            <button class="delete-btn" onclick="deleteDebt(${idx})">Delete</button>
+                        </div>
+                    </div>
+                    <div style="font-size: 0.9em; color: #999; margin-bottom: 8px;">
+                        <strong>Total Debt:</strong> $${item.amount.toFixed(2)} | <strong>Paid:</strong> $${paid.toFixed(2)} | <strong>Remaining:</strong> $${remaining}
+                    </div>
+                    <div style="font-size: 0.85em; color: #999; margin-bottom: 10px;">
+                        <strong>Interest Rate:</strong> ${item.rate}% (${interest})
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: ${Math.min(pct, 100)}%; background: linear-gradient(90deg, #ffdab9 0%, #ffb3c1 100%);"></div>
+                    </div>
+                    <div style="font-size: 0.85em; color: #999; margin-top: 8px; text-align: right;">${pct}% paid off</div>
+                </div>`;
+            }).join('');
+        }
+
+        function updateCharts() {
+            const data = getCurrentData();
+            const categoryBreakdown = {};
+            // Exclude grocery and shopping from pie chart
+            data.expenses.filter(item => !item.category.includes('Food/Grocery') && !item.category.includes('Shopping')).forEach(item => { categoryBreakdown[item.category] = (categoryBreakdown[item.category] || 0) + item.amount; });
+
+            const ctx1 = document.getElementById('spendingChart').getContext('2d');
+            if (spendingChart) spendingChart.destroy();
+            
+            const total = Object.values(categoryBreakdown).reduce((a, b) => a + b, 0);
+            const labels = Object.keys(categoryBreakdown).map((cat, idx) => {
+                const pct = ((Object.values(categoryBreakdown)[idx] / total) * 100).toFixed(1);
+                return `${cat} (${pct}%)`;
+            });
+            
+            spendingChart = new Chart(ctx1, {
+                type: 'doughnut',
+                data: {
+                    labels: labels,
+                    datasets: [{ data: Object.values(categoryBreakdown), backgroundColor: ['#ffc0d9', '#b5ead7', '#c7ceea', '#ffdab9', '#d4f1d4'], borderColor: 'white', borderWidth: 2 }]
+                },
+                options: { 
+                    responsive: true, 
+                    maintainAspectRatio: false, 
+                    plugins: { 
+                        legend: { 
+                            position: 'bottom',
+                            labels: { font: { size: 12, weight: '600' }, padding: 15 }
+                        } 
+                    } 
+                }
+            });
+
+            // Only include categories with budgets
+            const categoriesWithBudget = [...new Set(data.expenses.filter(e => e.budget && e.budget > 0).map(e => e.category))];
+            const budgets = categoriesWithBudget.map(cat => data.expenses.filter(e => e.category === cat && e.budget && e.budget > 0).reduce((sum, item) => sum + item.budget, 0));
+            const actuals = categoriesWithBudget.map(cat => data.expenses.filter(e => e.category === cat && e.budget && e.budget > 0).reduce((sum, item) => sum + item.amount, 0));
+            const categories = categoriesWithBudget;
+            
+            // Calculate differences
+            const differences = categories.map((cat, idx) => budgets[idx] - actuals[idx]);
+
+            const ctx2 = document.getElementById('budgetChart').getContext('2d');
+            if (budgetChart) budgetChart.destroy();
+            budgetChart = new Chart(ctx2, {
+                type: 'bar',
+                data: {
+                    labels: categories,
+                    datasets: [
+                        { label: 'Budget', data: budgets, backgroundColor: '#c7ceea', borderRadius: 5 },
+                        { label: 'Actual', data: actuals, backgroundColor: '#ffc0d9', borderRadius: 5 }
+                    ]
+                },
+                options: { 
+                    responsive: true, 
+                    maintainAspectRatio: false, 
+                    plugins: { 
+                        legend: { position: 'top' },
+                        datalabels: { display: false }
+                    }, 
+                    scales: { y: { beginAtZero: true } }
+                }
+            });
+
+            // Add difference summary below chart
+            const summaryDiv = document.createElement('div');
+            summaryDiv.style.marginTop = '20px';
+            summaryDiv.innerHTML = '<strong style="color: #6b5b95; margin-bottom: 10px; display: block;">📊 Budget Analysis:</strong>' + 
+                categories.map((cat, idx) => {
+                    const diff = differences[idx];
+                    const status = diff > 0 ? '✅ Saved' : diff < 0 ? '⚠️ Overspent' : '✓ On Budget';
+                    const color = diff > 0 ? '#7fdbca' : diff < 0 ? '#ff9ec3' : '#999';
+                    return `<div style="padding: 8px; margin-bottom: 8px; background: #f9f9ff; border-radius: 8px; border-left: 4px solid ${color};">
+                        <strong>${cat}</strong>: ${status} by <strong style="color: ${color};">$${Math.abs(diff).toFixed(2)}</strong>
+                    </div>`;
+                }).join('');
+            
+            const chartContainer = document.getElementById('budgetChart').parentElement.parentElement;
+            const existingSummary = chartContainer.querySelector('[data-summary="true"]');
+            if (existingSummary) existingSummary.remove();
+            summaryDiv.setAttribute('data-summary', 'true');
+            chartContainer.appendChild(summaryDiv);
+        }
+
+        function update() {
+            updateStats();
+            updateIncomeTable();
+            updateExpenseTable();
+            updateSavingsList();
+            updateDebtList();
+            updateCharts();
+        }
+
+        loadData();
+        updateMonthDisplay();
+        update();
+
+        // Register Service Worker for offline support
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('sw.js')
+                .then(registration => {
+                    console.log('Service Worker registered successfully:', registration);
+                })
+                .catch(error => {
+                    console.log('Service Worker registration failed:', error);
+                });
+        }
+
+        // Install prompt for app installation
+        let deferredPrompt;
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            // You can show an install button here if desired
+        });
+    </script>
+</body>
+</html>
