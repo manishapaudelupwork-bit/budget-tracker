@@ -405,3 +405,188 @@ td { padding: 9px; border-bottom: 1px solid #f0f0f0; font-size: 0.9em; }
     .two-column { grid-template-columns: 1fr; }
     .input-grid { grid-template-columns: repeat(3, 1fr); }
 }
+
+@media (max-width: 768px) {
+    .navbar {
+        flex-direction: column;
+        gap: 10px;
+        padding: 10px 15px;
+    }
+
+    .navbar h1 {
+        font-size: 1.2em;
+    }
+
+    .navbar-right {
+        width: 100%;
+        justify-content: space-between;
+        gap: 10px;
+    }
+
+    .user-email {
+        font-size: 0.8em;
+    }
+
+    .header {
+        flex-direction: column;
+        gap: 15px;
+        padding: 15px;
+    }
+
+    .header h2 {
+        font-size: 1.2em;
+    }
+
+    .month-selector {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .dashboard-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 12px;
+        margin-bottom: 20px;
+    }
+
+    .stat-card {
+        padding: 12px;
+    }
+
+    .stat-label {
+        font-size: 0.7em;
+    }
+
+    .stat-value {
+        font-size: 1.3em;
+    }
+
+    .input-grid {
+        grid-template-columns: 1fr;
+        gap: 10px;
+    }
+
+    .input-section {
+        padding: 12px;
+        margin-bottom: 15px;
+    }
+
+    .input-title {
+        font-size: 0.95em;
+        margin-bottom: 10px;
+    }
+
+    .add-btn {
+        width: 100%;
+        padding: 10px;
+    }
+
+    .chart-wrapper {
+        height: 200px;
+    }
+
+    .table-container {
+        padding: 12px;
+        font-size: 0.8em;
+    }
+
+    table {
+        font-size: 0.8em;
+    }
+
+    th, td {
+        padding: 6px;
+    }
+
+    .delete-btn, .edit-btn {
+        padding: 4px 8px;
+        font-size: 0.7em;
+    }
+
+    .app-container {
+        padding: 10px;
+    }
+
+    .container {
+        max-width: 100%;
+    }
+
+    .ad-container {
+        margin: 10px 0 !important;
+        min-height: 80px !important;
+    }
+}
+
+@media (max-width: 480px) {
+    .navbar h1 {
+        font-size: 1em;
+    }
+
+    .navbar-right {
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .logout-btn {
+        width: 100%;
+        padding: 8px 12px;
+        font-size: 0.8em;
+    }
+
+    .user-email {
+        font-size: 0.75em;
+        width: 100%;
+        text-align: center;
+    }
+
+    .header h2 {
+        font-size: 1em;
+    }
+
+    .dashboard-grid {
+        grid-template-columns: 1fr;
+        gap: 10px;
+    }
+
+    .stat-card {
+        padding: 10px;
+    }
+
+    .stat-label {
+        font-size: 0.65em;
+    }
+
+    .stat-value {
+        font-size: 1.1em;
+    }
+
+    .input-title {
+        font-size: 0.9em;
+    }
+
+    .chart-wrapper {
+        height: 150px;
+    }
+
+    .modal-content {
+        width: 95%;
+        padding: 20px;
+    }
+
+    .modal-header {
+        font-size: 1.2em;
+    }
+
+    .auth-box {
+        padding: 25px;
+        max-width: 100%;
+    }
+
+    .auth-box h1 {
+        font-size: 1.5em;
+    }
+
+    .ad-container {
+        margin: 8px 0 !important;
+        min-height: 60px !important;
+    }
+}
