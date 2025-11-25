@@ -53,6 +53,7 @@ async function register() {
         
         if (response.ok) {
             localStorage.setItem('token', data.token);
+            localStorage.setItem('currentUser', JSON.stringify(data.user));
             currentUser = data.user;
             showApp();
         } else {
@@ -84,6 +85,7 @@ async function login() {
         
         if (response.ok) {
             localStorage.setItem('token', data.token);
+            localStorage.setItem('currentUser', JSON.stringify(data.user));
             currentUser = data.user;
             showApp();
         } else {
@@ -97,6 +99,7 @@ async function login() {
 
 function logout() {
     localStorage.removeItem('token');
+    localStorage.removeItem('currentUser');
     currentUser = null;
     document.getElementById('authContainer').style.display = 'flex';
     document.getElementById('appContainer').style.display = 'none';
@@ -111,16 +114,15 @@ function showApp() {
 
 window.addEventListener('load', () => {
     const token = localStorage.getItem('token');
-    if (token) {
-        fetch(`${API_URL}/auth/verify`, {
-            headers: { 'Authorization': `Bearer ${token}` }
-        }).then(res => res.ok ? res.json() : null)
-          .then(data => {
-              if (data) {
-                  currentUser = data.user;
-                  showApp();
-              }
-          });
+    const userStr = localStorage.getItem('currentUser');
+    
+    if (token && userStr) {
+        try {
+            currentUser = JSON.parse(userStr);
+            showApp();
+        } catch (e) {
+            console.error('Error parsing user data:', e);
+        }
     }
 });
 
