@@ -8,9 +8,26 @@ let budgetChart = null;
 
 // Auth Functions
 function switchTab(tab) {
-    document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
-    document.querySelector(`[onclick="switchTab('${tab}')"]`).classList.add('active');
-    document.getElementById(tab + 'Tab').classList.add('active');
+    // Hide all tab contents
+    document.querySelectorAll('.tab-content').forEach(el => el.style.display = 'none');
+    
+    // Show selected tab
+    const tabElement = document.getElementById(tab + 'Tab');
+    if (tabElement) {
+        tabElement.style.display = 'block';
+    }
+    
+    // Update button styles
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.style.background = '#f0f0f0';
+        btn.style.color = '#999';
+    });
+    
+    const activeBtn = document.querySelector(`button[onclick="switchTab('${tab}')"]`);
+    if (activeBtn) {
+        activeBtn.style.background = 'linear-gradient(135deg, #ffc0d9 0%, #ffb3d0 100%)';
+        activeBtn.style.color = 'white';
+    }
 }
 
 function switchPage(page) {
@@ -66,8 +83,11 @@ async function register() {
 }
 
 async function login() {
+    console.log('Login clicked');
     const email = document.getElementById('loginEmail').value;
     const password = document.getElementById('loginPassword').value;
+    
+    console.log('Email:', email, 'Password:', password);
     
     if (!email || !password) {
         document.getElementById('loginMessage').textContent = 'Email and password required';
@@ -75,13 +95,16 @@ async function login() {
     }
     
     try {
+        console.log('Attempting login...');
         const response = await fetch(`${API_URL}/auth/login`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ email, password })
         });
         
+        console.log('Response status:', response.status);
         const data = await response.json();
+        console.log('Response data:', data);
         
         if (response.ok) {
             localStorage.setItem('token', data.token);
@@ -93,7 +116,7 @@ async function login() {
         }
     } catch (error) {
         console.error('Login error:', error);
-        document.getElementById('loginMessage').textContent = 'Login failed';
+        document.getElementById('loginMessage').textContent = 'Login failed: ' + error.message;
     }
 }
 
