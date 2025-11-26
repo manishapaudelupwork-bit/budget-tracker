@@ -442,10 +442,12 @@ function updateIncomeTable() {
     tbody.innerHTML = data.income.map((item, idx) => `
         <tr>
             <td>${item.source}</td>
-            <td>${item.category}</td>
-            <td style="color: #ff9ec3; font-weight: 600;">+$${item.amount.toFixed(2)}</td>
+            <td>$${item.amount.toFixed(2)}</td>
             <td>${item.date}</td>
-            <td><button class="delete-btn" onclick="deleteIncome(${idx})">Delete</button></td>
+            <td>
+                <button class="edit-btn" onclick="editIncome(${idx})">Edit</button>
+                <button class="delete-btn" onclick="deleteIncome(${idx})">Delete</button>
+            </td>
         </tr>
     `).join('');
 }
@@ -460,15 +462,16 @@ function updateExpenseTable() {
     }
     
     tbody.innerHTML = data.expenses.map((item, idx) => {
-        const pct = item.budget > 0 ? (item.amount / item.budget * 100) : 0;
         return `
             <tr>
                 <td>${item.name}</td>
                 <td>${item.category}</td>
-                <td style="color: #7fdbca; font-weight: 600;">-$${item.amount.toFixed(2)}</td>
+                <td>$${item.amount.toFixed(2)}</td>
                 <td>$${item.budget.toFixed(2)}</td>
-                <td><div class="progress-bar"><div class="progress-fill" style="width: ${Math.min(pct, 100)}%"></div></div>${pct.toFixed(0)}%</td>
-                <td><button class="delete-btn" onclick="deleteExpense(${idx})">Delete</button></td>
+                <td>
+                    <button class="edit-btn" onclick="editExpense(${idx})">Edit</button>
+                    <button class="delete-btn" onclick="deleteExpense(${idx})">Delete</button>
+                </td>
             </tr>
         `;
     }).join('');
@@ -739,6 +742,31 @@ function addDebt() {
     alert('Debt added: ' + name);
     document.getElementById('debtName').value = '';
     document.getElementById('debtAmount').value = '';
+}
+
+// Edit Functions
+function editIncome(idx) {
+    const data = getCurrentData();
+    const item = data.income[idx];
+    
+    const newAmount = prompt('Enter new amount:', item.amount);
+    if (newAmount !== null && newAmount !== '') {
+        data.income[idx].amount = parseFloat(newAmount);
+        saveData();
+        update();
+    }
+}
+
+function editExpense(idx) {
+    const data = getCurrentData();
+    const item = data.expenses[idx];
+    
+    const newAmount = prompt('Enter new amount:', item.amount);
+    if (newAmount !== null && newAmount !== '') {
+        data.expenses[idx].amount = parseFloat(newAmount);
+        saveData();
+        update();
+    }
 }
 
 // Grocery Functions
