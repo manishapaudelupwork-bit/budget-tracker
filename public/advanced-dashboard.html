@@ -277,6 +277,47 @@
     </style>
 </head>
 <body>
+    <!-- Auth Container -->
+    <div id="authContainer" class="auth-container" style="display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 20px;">
+        <div class="auth-box" style="background: white; padding: 40px; border-radius: 15px; box-shadow: 0 10px 40px rgba(0,0,0,0.1); width: 100%; max-width: 400px;">
+            <h1 style="color: #6b5b95; text-align: center; margin-bottom: 10px; font-size: 2em;">💰 Budget & 🛒 Grocery Tracker</h1>
+            <p class="auth-subtitle" style="text-align: center; color: #999; margin-bottom: 30px;">Manage your finances and groceries</p>
+            
+            <div class="auth-tabs" style="display: flex; gap: 10px; margin-bottom: 30px;">
+                <button class="tab-btn active" onclick="switchTab('login')" style="flex: 1; padding: 12px; background: linear-gradient(135deg, #ffc0d9 0%, #ffb3d0 100%); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;">Login</button>
+                <button class="tab-btn" onclick="switchTab('register')" style="flex: 1; padding: 12px; background: #f0f0f0; color: #999; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;">Sign Up</button>
+            </div>
+            
+            <!-- Login Form -->
+            <div id="loginTab" class="tab-content active">
+                <input type="email" id="loginEmail" placeholder="Email" class="auth-input" style="width: 100%; padding: 12px; margin-bottom: 15px; border: 2px solid #e8d5f2; border-radius: 8px; font-size: 1em; font-family: inherit;">
+                <input type="password" id="loginPassword" placeholder="Password" class="auth-input" style="width: 100%; padding: 12px; margin-bottom: 15px; border: 2px solid #e8d5f2; border-radius: 8px; font-size: 1em; font-family: inherit;">
+                <button onclick="login()" class="auth-btn" style="width: 100%; padding: 12px; background: linear-gradient(135deg, #ffc0d9 0%, #ffb3d0 100%); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 1em;">Login</button>
+                <p class="auth-message" id="loginMessage" style="text-align: center; margin-top: 15px; font-size: 0.9em; color: #e74c3c;"></p>
+            </div>
+            
+            <!-- Register Form -->
+            <div id="registerTab" class="tab-content" style="display: none;">
+                <input type="text" id="registerName" placeholder="Full Name" class="auth-input" style="width: 100%; padding: 12px; margin-bottom: 15px; border: 2px solid #e8d5f2; border-radius: 8px; font-size: 1em; font-family: inherit;">
+                <input type="email" id="registerEmail" placeholder="Email" class="auth-input" style="width: 100%; padding: 12px; margin-bottom: 15px; border: 2px solid #e8d5f2; border-radius: 8px; font-size: 1em; font-family: inherit;">
+                <input type="password" id="registerPassword" placeholder="Password" class="auth-input" style="width: 100%; padding: 12px; margin-bottom: 15px; border: 2px solid #e8d5f2; border-radius: 8px; font-size: 1em; font-family: inherit;">
+                <input type="password" id="registerConfirm" placeholder="Confirm Password" class="auth-input" style="width: 100%; padding: 12px; margin-bottom: 15px; border: 2px solid #e8d5f2; border-radius: 8px; font-size: 1em; font-family: inherit;">
+                <button onclick="register()" class="auth-btn" style="width: 100%; padding: 12px; background: linear-gradient(135deg, #ffc0d9 0%, #ffb3d0 100%); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 1em;">Sign Up</button>
+                <p class="auth-message" id="registerMessage" style="text-align: center; margin-top: 15px; font-size: 0.9em; color: #e74c3c;"></p>
+            </div>
+        </div>
+    </div>
+
+    <!-- App Container -->
+    <div id="appContainer" class="app-container" style="display: none;">
+        <div class="navbar" style="background: white; padding: 15px 30px; box-shadow: 0 5px 20px rgba(0,0,0,0.08); display: flex; justify-content: space-between; align-items: center;">
+            <h1 style="color: #6b5b95; font-size: 1.5em;">💰 Budget & 🛒 Grocery Tracker</h1>
+            <div class="navbar-right" style="display: flex; gap: 20px; align-items: center;">
+                <span id="userEmail" class="user-email" style="color: #999; font-size: 0.9em;"></span>
+                <button onclick="logout()" class="logout-btn" style="padding: 8px 16px; background: #ffb3c1; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 0.85em;">Logout</button>
+            </div>
+        </div>
+
     <div class="container">
         <!-- Navigation Tabs -->
         <div style="display: flex; gap: 10px; margin-bottom: 20px; background: white; padding: 15px; border-radius: 12px; box-shadow: 0 5px 20px rgba(0,0,0,0.08);">
@@ -1410,5 +1451,6 @@
         });
     </script>
     <script src="index.js"></script>
+    </div> <!-- Close appContainer -->
 </body>
 </html>
