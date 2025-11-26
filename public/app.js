@@ -14,6 +14,14 @@ function switchTab(tab) {
     document.querySelector(`[onclick="switchTab('${tab}')"]`).classList.add('active');
 }
 
+// App Tab Switching
+function switchApp(app) {
+    document.querySelectorAll('.app-tab-content').forEach(el => el.style.display = 'none');
+    document.querySelectorAll('.app-tab-btn').forEach(el => el.classList.remove('active'));
+    document.getElementById(app + 'App').style.display = 'block';
+    event.target.classList.add('active');
+}
+
 async function register() {
     const name = document.getElementById('registerName').value;
     const email = document.getElementById('registerEmail').value;
@@ -644,3 +652,17 @@ window.onclick = function(event) {
     if (event.target === contributionModal) closeContributionModal();
     if (event.target === paymentModal) closePaymentModal();
 };
+
+// Grocery Functions
+function addGroceryItem() {
+    const name = document.getElementById('groceryName').value;
+    const quantity = document.getElementById('groceryQuantity').value;
+    const price = document.getElementById('groceryPrice').value;
+    
+    if (!name || !quantity || !price) return;
+    
+    alert('Grocery item added: ' + name);
+    document.getElementById('groceryName').value = '';
+    document.getElementById('groceryQuantity').value = '';
+    document.getElementById('groceryPrice').value = '';
+}
