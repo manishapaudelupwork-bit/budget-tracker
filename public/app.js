@@ -41,6 +41,7 @@ async function register() {
         
         if (response.ok) {
             localStorage.setItem('token', data.token);
+            localStorage.setItem('currentUser', JSON.stringify(data.user));
             currentUser = data.user;
             showApp();
         } else {
@@ -71,6 +72,7 @@ async function login() {
         
         if (response.ok) {
             localStorage.setItem('token', data.token);
+            localStorage.setItem('currentUser', JSON.stringify(data.user));
             currentUser = data.user;
             showApp();
         } else {
@@ -81,8 +83,24 @@ async function login() {
     }
 }
 
+// Check if user is already logged in on page load
+window.addEventListener('load', () => {
+    const token = localStorage.getItem('token');
+    const userStr = localStorage.getItem('currentUser');
+    
+    if (token && userStr) {
+        try {
+            currentUser = JSON.parse(userStr);
+            showApp();
+        } catch (e) {
+            console.error('Error parsing user:', e);
+        }
+    }
+});
+
 function logout() {
     localStorage.removeItem('token');
+    localStorage.removeItem('currentUser');
     currentUser = null;
     document.getElementById('authContainer').style.display = 'flex';
     document.getElementById('appContainer').style.display = 'none';
