@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Budget & Grocery Tracker</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+    <!-- Google AdSense -->
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7991336403094707"
+     crossorigin="anonymous"></script>
+</head>
+<body>
+    <!-- Auth Container -->
+    <div id="authContainer" class="auth-container">
+        <div class="auth-box">
+            <h1>💰 Budget & 🛒 Grocery Tracker</h1>
+            <p class="auth-subtitle">Manage your finances and groceries with ease</p>
+            
+            <div class="auth-tabs">
+                <button class="tab-btn active" onclick="switchTab('login')">Login</button>
+                <button class="tab-btn" onclick="switchTab('register')">Sign Up</button>
+            </div>
+            
+            <!-- Login Form -->
+            <div id="loginTab" class="tab-content active">
+                <input type="email" id="loginEmail" placeholder="Email" class="auth-input">
+                <input type="password" id="loginPassword" placeholder="Password" class="auth-input">
+                <button onclick="login()" class="auth-btn">Login</button>
+                <p class="auth-message" id="loginMessage"></p>
+            </div>
+            
+            <!-- Register Form -->
+            <div id="registerTab" class="tab-content">
+                <input type="text" id="registerName" placeholder="Full Name" class="auth-input">
+                <input type="email" id="registerEmail" placeholder="Email" class="auth-input">
+                <input type="password" id="registerPassword" placeholder="Password" class="auth-input">
+                <input type="password" id="registerConfirm" placeholder="Confirm Password" class="auth-input">
+                <button onclick="register()" class="auth-btn">Sign Up</button>
+                <p class="auth-message" id="registerMessage"></p>
+            </div>
+        </div>
+    </div>
+
+    <!-- App Container -->
+    <div id="appContainer" class="app-container" style="display: none;">
+        <div class="navbar">
+            <h1>💰 Budget & 🛒 Grocery Tracker</h1>
+            <div class="navbar-right">
+                <span id="userEmail" class="user-email"></span>
+                <button onclick="logout()" class="logout-btn">Logout</button>
+            </div>
+        </div>
+
+        <div class="container">
+            <!-- App Tabs -->
+            <div class="app-tabs">
+                <button class="app-tab-btn active" onclick="switchApp('budget')">💰 Budget Tracker</button>
+                <button class="app-tab-btn" onclick="switchApp('grocery')">🛒 Grocery Tracker</button>
+            </div>
+
+            <!-- BUDGET APP -->
+            <div id="budgetApp" class="app-tab-content active">
+                <div class="header">
+                    <h2>Your Budget Dashboard</h2>
+                    <div class="month-selector">
+                        <button onclick="previousMonth()">←</button>
+                        <div class="month-display" id="monthDisplay">November 2025</div>
+                        <button onclick="nextMonth()">→</button>
+                    </div>
+                </div>
+
+                <div class="dashboard-grid">
+                    <div class="stat-card income">
+                        <div class="stat-label">💵 Total Income</div>
+                        <div class="stat-value" id="totalIncome">$0.00</div>
+                    </div>
+                    <div class="stat-card expense">
+                        <div class="stat-label">🛒 Total Expenses</div>
+                        <div class="stat-value" id="totalExpense">$0.00</div>
+                    </div>
+                    <div class="stat-card savings">
+                        <div class="stat-label">💳 Remaining</div>
+                        <div class="stat-value" id="balance">$0.00</div>
+                    </div>
+                    <div class="stat-card debt">
+                        <div class="stat-label">📊 Total Debt</div>
+                        <div class="stat-value" id="totalDebt">$0.00</div>
+                    </div>
+                </div>
+
+                <div class="input-section">
+                    <div class="input-title">➕ Add Income</div>
+                    <div class="input-grid">
+                        <input type="text" id="incomeSource" placeholder="Source">
+                        <input type="number" id="incomeAmount" placeholder="Amount" step="0.01">
+                        <input type="date" id="incomeDate">
+                        <select id="incomeCategory">
+                            <option value="">Category</option>
+                            <option value="Salary">Salary</option>
+                            <option value="Freelance">Freelance</option>
+                            <option value="Other">Other</option>
+                        </select>
+                        <button class="add-btn" onclick="addIncome()">Add</button>
+                    </div>
+                </div>
+
+                <div class="input-section">
+                    <div class="input-title">➖ Add Expense</div>
+                    <div class="input-grid">
+                        <input type="text" id="expenseSource" placeholder="Description">
+                        <input type="number" id="expenseAmount" placeholder="Amount" step="0.01">
+                        <input type="date" id="expenseDate">
+                        <select id="expenseCategory">
+                            <option value="">Category</option>
+                            <option value="Food">Food</option>
+                            <option value="Transport">Transport</option>
+                            <option value="Entertainment">Entertainment</option>
+                            <option value="Utilities">Utilities</option>
+                            <option value="Other">Other</option>
+                        </select>
+                        <button class="add-btn" onclick="addExpense()">Add</button>
+                    </div>
+                </div>
+
+                <div class="two-column">
+                    <div class="table-container">
+                        <h3>Income</h3>
+                        <table id="incomeTable">
+                            <thead>
+                                <tr>
+                                    <th>Source</th>
+                                    <th>Amount</th>
+                                    <th>Date</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                        <div class="empty-state" id="incomeEmpty">No income added yet</div>
+                    </div>
+
+                    <div class="table-container">
+                        <h3>Expenses</h3>
+                        <table id="expenseTable">
+                            <thead>
+                                <tr>
+                                    <th>Description</th>
+                                    <th>Amount</th>
+                                    <th>Date</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                        <div class="empty-state" id="expenseEmpty">No expenses added yet</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- GROCERY APP -->
+            <div id="groceryApp" class="app-tab-content" style="display: none;">
+                <div class="header">
+                    <h2>🛒 Grocery & Shopping Tracker</h2>
+                </div>
+
+                <div class="dashboard-grid">
+                    <div class="stat-card income">
+                        <div class="stat-label">🛒 Total Items</div>
+                        <div class="stat-value" id="totalGroceryItems">0</div>
+                    </div>
+                    <div class="stat-card expense">
+                        <div class="stat-label">💰 Total Cost</div>
+                        <div class="stat-value" id="totalGroceryCost">$0.00</div>
+                    </div>
+                    <div class="stat-card savings">
+                        <div class="stat-label">✅ Purchased</div>
+                        <div class="stat-value" id="purchasedItems">0</div>
+                    </div>
+                    <div class="stat-card debt">
+                        <div class="stat-label">⏳ Pending</div>
+                        <div class="stat-value" id="pendingItems">0</div>
+                    </div>
+                </div>
+
+                <div class="input-section">
+                    <div class="input-title">➕ Add Grocery Item</div>
+                    <div class="input-grid">
+                        <input type="text" id="groceryName" placeholder="Item name">
+                        <input type="number" id="groceryQuantity" placeholder="Quantity" step="0.1">
+                        <input type="number" id="groceryPrice" placeholder="Price per unit" step="0.01">
+                        <select id="groceryCategory">
+                            <option value="">Category</option>
+                            <option value="Vegetables">Vegetables</option>
+                            <option value="Fruits">Fruits</option>
+                            <option value="Dairy">Dairy</option>
+                            <option value="Meat">Meat</option>
+                            <option value="Grains">Grains</option>
+                            <option value="Spices">Spices</option>
+                            <option value="Other">Other</option>
+                        </select>
+                        <button class="add-btn" onclick="addGroceryItem()">Add</button>
+                    </div>
+                </div>
+
+                <div class="table-container">
+                    <h3>Shopping List</h3>
+                    <table id="groceryTable">
+                        <thead>
+                            <tr>
+                                <th>Item</th>
+                                <th>Category</th>
+                                <th>Qty</th>
+                                <th>Price/Unit</th>
+                                <th>Total</th>
+                                <th>Status</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                    <div class="empty-state" id="groceryEmpty">No items added yet</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="index.js"></script>
+</body>
+</html>

@@ -4,5 +4,5 @@
 
 [[redirects]]
   from = "/*"
-  to = "/advanced-dashboard.html"
+  to = "/dashboard.html"
   status = 200
