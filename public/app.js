@@ -653,6 +653,31 @@ window.onclick = function(event) {
     if (event.target === paymentModal) closePaymentModal();
 };
 
+// Savings and Debt Functions
+function addSaving() {
+    const name = document.getElementById('savingName').value;
+    const target = document.getElementById('savingTarget').value;
+    
+    if (!name || !target) return;
+    
+    alert('Saving goal added: ' + name);
+    document.getElementById('savingName').value = '';
+    document.getElementById('savingTarget').value = '';
+    document.getElementById('savingTargetDate').value = '';
+    document.getElementById('savingInitial').value = '';
+}
+
+function addDebt() {
+    const name = document.getElementById('debtName').value;
+    const amount = document.getElementById('debtAmount').value;
+    
+    if (!name || !amount) return;
+    
+    alert('Debt added: ' + name);
+    document.getElementById('debtName').value = '';
+    document.getElementById('debtAmount').value = '';
+}
+
 // Grocery Functions
 function addGroceryItem() {
     const name = document.getElementById('groceryName').value;
