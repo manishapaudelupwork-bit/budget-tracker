@@ -646,6 +646,69 @@ function update() {
     updateCharts();
 }
 
+function updateCharts() {
+    // Spending Breakdown - Pie Chart
+    const expenses = allData.expenses || [];
+    const categoryTotals = {};
+    
+    expenses.forEach(exp => {
+        const cat = exp.category || 'Other';
+        categoryTotals[cat] = (categoryTotals[cat] || 0) + parseFloat(exp.amount || 0);
+    });
+    
+    const ctx1 = document.getElementById('spendingChart');
+    if (ctx1 && Object.keys(categoryTotals).length > 0) {
+        if (spendingChart) spendingChart.destroy();
+        spendingChart = new Chart(ctx1, {
+            type: 'doughnut',
+            data: {
+                labels: Object.keys(categoryTotals),
+                datasets: [{
+                    data: Object.values(categoryTotals),
+                    backgroundColor: ['#ffc0d9', '#b5ead7', '#c7ceea', '#ffdab9', '#ffb3d0', '#a8d8ea', '#f7dc6f', '#bb8fce', '#85c1e2', '#f8b88b']
+                }]
+            },
+            options: { responsive: true, maintainAspectRatio: false }
+        });
+    }
+    
+    // Budget vs Actual - Bar Chart (only if budget is provided)
+    const expensesWithBudget = expenses.filter(exp => exp.budget && parseFloat(exp.budget) > 0);
+    
+    if (expensesWithBudget.length > 0) {
+        const ctx2 = document.getElementById('budgetChart');
+        if (ctx2) {
+            if (budgetChart) budgetChart.destroy();
+            budgetChart = new Chart(ctx2, {
+                type: 'bar',
+                data: {
+                    labels: expensesWithBudget.map(exp => exp.category),
+                    datasets: [
+                        {
+                            label: 'Budget',
+                            data: expensesWithBudget.map(exp => parseFloat(exp.budget || 0)),
+                            backgroundColor: '#c7ceea',
+                            borderRadius: 5
+                        },
+                        {
+                            label: 'Actual',
+                            data: expensesWithBudget.map(exp => parseFloat(exp.amount || 0)),
+                            backgroundColor: '#ffc0d9',
+                            borderRadius: 5
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { position: 'top' } },
+                    scales: { y: { beginAtZero: true } }
+                }
+            });
+        }
+    }
+}
+
 window.onclick = function(event) {
     const contributionModal = document.getElementById('addContributionModal');
     const paymentModal = document.getElementById('addPaymentModal');
